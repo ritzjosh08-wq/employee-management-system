@@ -1,0 +1,27 @@
+# Build output
+bin/
+obj/
+[Dd]ebug/
+[Rr]elease/
+publish/
+*.nupkg
+
+# IDEs
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.swp
+
+# Test results
+TestResults/
+coverage*.xml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local secrets
+.env
+appsettings.*.local.json

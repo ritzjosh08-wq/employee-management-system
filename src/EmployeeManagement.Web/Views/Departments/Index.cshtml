@@ -1,0 +1,34 @@
+@model IReadOnlyList<Department>
+@{
+    ViewData["Title"] = "Departments";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3 mb-0">Departments</h1>
+    <a class="btn btn-primary" asp-action="Create">New department</a>
+</div>
+
+<table class="table table-hover align-middle">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Location</th>
+            <th class="text-end">Employees</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var d in Model)
+        {
+            <tr>
+                <td><a asp-controller="Employees" asp-action="Index" asp-route-departmentId="@d.DepartmentId">@d.Name</a></td>
+                <td>@(d.Location ?? "—")</td>
+                <td class="text-end">@d.EmployeeCount</td>
+                <td class="text-end text-nowrap">
+                    <a class="btn btn-sm btn-outline-secondary" asp-action="Edit" asp-route-id="@d.DepartmentId">Edit</a>
+                    <a class="btn btn-sm btn-outline-danger" asp-action="Delete" asp-route-id="@d.DepartmentId">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

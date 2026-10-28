@@ -1,0 +1,75 @@
+@model DashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<h1 class="h3 mb-4">Dashboard</h1>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card stat-card">
+            <div class="card-body">
+                <div class="text-muted small">Total employees</div>
+                <div class="display-6">@Model.Stats.TotalEmployees</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card stat-card">
+            <div class="card-body">
+                <div class="text-muted small">Active employees</div>
+                <div class="display-6">@Model.Stats.ActiveEmployees</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card stat-card">
+            <div class="card-body">
+                <div class="text-muted small">Average salary</div>
+                <div class="display-6">@Model.Stats.AverageSalary.ToString("C0")</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <h2 class="h5">Departments</h2>
+        <p class="text-muted small">Active headcount and average salary, from the <code>usp_GetDepartmentSummary</code> stored procedure.</p>
+        <table class="table table-sm align-middle">
+            <thead>
+                <tr>
+                    <th>Department</th>
+                    <th class="text-end">Active employees</th>
+                    <th class="text-end">Average salary</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var d in Model.Departments)
+                {
+                    <tr>
+                        <td><a asp-controller="Employees" asp-action="Index" asp-route-departmentId="@d.DepartmentId">@d.Name</a></td>
+                        <td class="text-end">@d.EmployeeCount</td>
+                        <td class="text-end">@d.AverageSalary.ToString("C0")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="col-lg-5">
+        <h2 class="h5">Recent hires</h2>
+        <ul class="list-group">
+            @foreach (var e in Model.RecentHires)
+            {
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <a asp-controller="Employees" asp-action="Details" asp-route-id="@e.EmployeeId">@e.FullName</a>
+                        <div class="small text-muted">@e.JobTitle &middot; @e.DepartmentName</div>
+                    </div>
+                    <span class="small text-muted">@e.HireDate.ToString("d MMM yyyy")</span>
+                </li>
+            }
+        </ul>
+    </div>
+</div>

@@ -1,0 +1,17 @@
+# Runs SQL Server in a container, for macOS/Linux (or Windows without LocalDB).
+#   export MSSQL_SA_PASSWORD='Choose-A-Str0ng-Password'
+#   docker compose up -d
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: employee-management-sql
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:?Set MSSQL_SA_PASSWORD before running docker compose}
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+
+volumes:
+  sqlserver-data:

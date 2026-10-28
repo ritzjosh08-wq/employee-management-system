@@ -1,0 +1,22 @@
+@model Department
+@{
+    ViewData["Title"] = "Delete department";
+}
+
+<h1 class="h3 mb-4">Delete department</h1>
+
+<div class="card form-narrow">
+    <div class="card-body">
+        <p>Are you sure you want to delete <strong>@Model.Name</strong>?</p>
+        @if (Model.EmployeeCount > 0)
+        {
+            <div class="alert alert-warning">
+                This department has @Model.EmployeeCount employee(s). It can't be deleted until they are moved to another department.
+            </div>
+        }
+        <form asp-action="Delete" asp-route-id="@Model.DepartmentId" method="post">
+            <button type="submit" class="btn btn-danger" disabled="@(Model.EmployeeCount > 0)">Delete</button>
+            <a asp-action="Index" class="btn btn-link">Cancel</a>
+        </form>
+    </div>
+</div>

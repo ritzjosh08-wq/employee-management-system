@@ -1,0 +1,17 @@
+@model Employee
+@{
+    ViewData["Title"] = "Delete employee";
+}
+
+<h1 class="h3 mb-4">Delete employee</h1>
+
+<div class="card form-narrow">
+    <div class="card-body">
+        <p>Are you sure you want to delete <strong>@Model.FullName</strong> (@Model.JobTitle, @Model.DepartmentName)?</p>
+        <p class="text-muted small">Tip: to keep their history, edit them and untick "Active" instead.</p>
+        <form asp-action="Delete" asp-route-id="@Model.EmployeeId" method="post">
+            <button type="submit" class="btn btn-danger">Delete</button>
+            <a asp-action="Details" asp-route-id="@Model.EmployeeId" class="btn btn-link">Cancel</a>
+        </form>
+    </div>
+</div>

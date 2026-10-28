@@ -1,0 +1,24 @@
+html {
+    font-size: 15px;
+}
+
+body {
+    background-color: #f7f8fa;
+}
+
+.stat-card {
+    border: none;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.table {
+    background-color: #fff;
+}
+
+.form-narrow {
+    max-width: 480px;
+}
+
+.form-wide {
+    max-width: 760px;
+}
