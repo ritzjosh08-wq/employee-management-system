@@ -4,8 +4,7 @@ namespace EmployeeManagement.Web.Repositories;
 
 public interface IEmployeeRepository
 {
-    Task<PagedResult<Employee>> SearchAsync(string? search, int? departmentId, int page, int pageSize,
-        CancellationToken cancellationToken = default);
+    Task<PagedResult<Employee>> SearchAsync(EmployeeQuery query, CancellationToken cancellationToken = default);
     Task<Employee?> GetByIdAsync(int id, CancellationToken cancellationToken = default);
     Task<int> CreateAsync(Employee employee, CancellationToken cancellationToken = default);
     Task<bool> UpdateAsync(Employee employee, CancellationToken cancellationToken = default);

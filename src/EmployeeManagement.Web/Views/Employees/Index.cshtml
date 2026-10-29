@@ -2,92 +2,157 @@
 @{
     ViewData["Title"] = "Employees";
     var result = Model.Result;
+    var q = Model.Query;
+    var first = result.TotalCount == 0 ? 0 : (result.Page - 1) * result.PageSize + 1;
+    var last = first == 0 ? 0 : first + result.Items.Count - 1;
+
+    // Current filters as route values, so sorting and paging keep them.
+    Dictionary<string, string> Route(string? sort = null, int? page = null)
+    {
+        var values = new Dictionary<string, string>();
+        if (!string.IsNullOrWhiteSpace(q.Search)) values["search"] = q.Search;
+        if (q.DepartmentId is int departmentId) values["departmentId"] = departmentId.ToString();
+        if (q.IsActive is bool isActive) values["isActive"] = isActive ? "true" : "false";
+        var s = sort ?? q.Sort;
+        if (!string.IsNullOrEmpty(s)) values["sort"] = s;
+        if (page is int p && p > 1) values["page"] = p.ToString();
+        return values;
+    }
+
+    // Page numbers to show: a window of 5 around the current page.
+    var startPage = Math.Max(1, Math.Min(result.Page - 2, result.TotalPages - 4));
+    var endPage = Math.Min(result.TotalPages, startPage + 4);
 }
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h1 class="h3 mb-0">Employees</h1>
-    <a class="btn btn-primary" asp-action="Create">New employee</a>
+@functions {
+    private static string SortIcon(string? direction) => direction switch
+    {
+        "asc" => "bi-arrow-up",
+        "desc" => "bi-arrow-down",
+        _ => "bi-arrow-down-up opacity-25"
+    };
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Employees</h1>
+        <p class="page-subtitle">Search, filter and manage everyone in the organisation.</p>
+    </div>
+    <div class="page-actions">
+        <a class="btn btn-primary" asp-action="Create"><i class="bi bi-person-plus"></i> Add employee</a>
+    </div>
 </div>
 
-<form method="get" asp-action="Index" class="row g-2 mb-3">
-    <div class="col-sm-6 col-md-5">
-        <input name="search" value="@Model.Search" class="form-control" placeholder="Search name, email or job title" />
-    </div>
-    <div class="col-sm-4 col-md-3">
-        <select name="departmentId" class="form-select" asp-items="Model.Departments">
+<div class="card table-card">
+    <form method="get" asp-action="Index" class="filter-bar" role="search">
+        <div class="search-field">
+            <i class="bi bi-search"></i>
+            <input type="search" name="search" value="@q.Search" class="form-control" placeholder="Search by name, email or job title" aria-label="Search" />
+        </div>
+        <select name="departmentId" class="form-select" asp-items="Model.Departments" aria-label="Department" data-auto-submit>
             <option value="">All departments</option>
         </select>
-    </div>
-    <div class="col-auto">
-        <button type="submit" class="btn btn-outline-primary">Filter</button>
-        <a asp-action="Index" class="btn btn-link">Clear</a>
-    </div>
-</form>
+        <select name="isActive" class="form-select" aria-label="Status" data-auto-submit>
+            <option value="">All statuses</option>
+            <option value="true" selected="@(q.IsActive == true)">Active</option>
+            <option value="false" selected="@(q.IsActive == false)">Inactive</option>
+        </select>
+        @if (!string.IsNullOrEmpty(q.Sort))
+        {
+            <input type="hidden" name="sort" value="@q.Sort" />
+        }
+        <button type="submit" class="btn btn-light"><i class="bi bi-funnel"></i> Apply</button>
+        @if (Model.HasFilters)
+        {
+            <a asp-action="Index" class="btn btn-link text-decoration-none"><i class="bi bi-x-circle"></i> Clear</a>
+        }
+    </form>
 
-@if (result.Items.Count == 0)
-{
-    <p class="text-muted">No employees match your filters.</p>
-}
-else
-{
-    <div class="table-responsive">
-    <table class="table table-hover align-middle">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Job title</th>
-                <th>Department</th>
-                <th class="text-end">Salary</th>
-                <th>Status</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var e in result.Items)
+    @if (result.Items.Count == 0)
+    {
+        <div class="empty-state">
+            <span class="stat-icon tone-slate"><i class="bi bi-person-x"></i></span>
+            @if (Model.HasFilters)
             {
-                <tr>
-                    <td>
-                        <a asp-action="Details" asp-route-id="@e.EmployeeId">@e.FullName</a>
-                        <div class="small text-muted">@e.Email</div>
-                    </td>
-                    <td>@e.JobTitle</td>
-                    <td>@e.DepartmentName</td>
-                    <td class="text-end">@e.Salary.ToString("C0")</td>
-                    <td>
-                        @if (e.IsActive)
-                        {
-                            <span class="badge text-bg-success">Active</span>
-                        }
-                        else
-                        {
-                            <span class="badge text-bg-secondary">Inactive</span>
-                        }
-                    </td>
-                    <td class="text-end text-nowrap">
-                        <a class="btn btn-sm btn-outline-secondary" asp-action="Edit" asp-route-id="@e.EmployeeId">Edit</a>
-                        <a class="btn btn-sm btn-outline-danger" asp-action="Delete" asp-route-id="@e.EmployeeId">Delete</a>
-                    </td>
-                </tr>
+                <h3>No employees match your filters</h3>
+                <p>Try a different search term, or clear the filters to see everyone.</p>
+                <a asp-action="Index" class="btn btn-light">Clear filters</a>
             }
-        </tbody>
-    </table>
-    </div>
+            else
+            {
+                <h3>No employees yet</h3>
+                <p>Add your first employee to start building your organisation.</p>
+                <a asp-action="Create" class="btn btn-primary"><i class="bi bi-person-plus"></i> Add employee</a>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th><a class="sort-link @(Model.SortDirection(EmployeeSort.Name) is null ? "" : "active")" asp-action="Index" asp-all-route-data="Route(Model.NextSort(EmployeeSort.Name))">Employee <i class="bi @SortIcon(Model.SortDirection(EmployeeSort.Name))"></i></a></th>
+                        <th><a class="sort-link @(Model.SortDirection(EmployeeSort.JobTitle) is null ? "" : "active")" asp-action="Index" asp-all-route-data="Route(Model.NextSort(EmployeeSort.JobTitle))">Job title <i class="bi @SortIcon(Model.SortDirection(EmployeeSort.JobTitle))"></i></a></th>
+                        <th><a class="sort-link @(Model.SortDirection(EmployeeSort.Department) is null ? "" : "active")" asp-action="Index" asp-all-route-data="Route(Model.NextSort(EmployeeSort.Department))">Department <i class="bi @SortIcon(Model.SortDirection(EmployeeSort.Department))"></i></a></th>
+                        <th class="text-end"><a class="sort-link @(Model.SortDirection(EmployeeSort.Salary) is null ? "" : "active")" asp-action="Index" asp-all-route-data="Route(Model.NextSort(EmployeeSort.Salary))">Salary <i class="bi @SortIcon(Model.SortDirection(EmployeeSort.Salary))"></i></a></th>
+                        <th><a class="sort-link @(Model.SortDirection(EmployeeSort.HireDate) is null ? "" : "active")" asp-action="Index" asp-all-route-data="Route(Model.NextSort(EmployeeSort.HireDate))">Hired <i class="bi @SortIcon(Model.SortDirection(EmployeeSort.HireDate))"></i></a></th>
+                        <th>Status</th>
+                        <th class="text-end"><span class="visually-hidden">Actions</span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var e in result.Items)
+                    {
+                        <tr>
+                            <td>
+                                <div class="person">
+                                    <span class="avatar avatar-@(e.EmployeeId % 6)">@e.Initials</span>
+                                    <div class="min-w-0">
+                                        <a class="person-name" asp-action="Details" asp-route-id="@e.EmployeeId">@e.FullName</a>
+                                        <span class="person-meta">@e.Email</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>@e.JobTitle</td>
+                            <td><a class="dept-badge" asp-action="Index" asp-route-departmentId="@e.DepartmentId">@e.DepartmentName</a></td>
+                            <td class="text-end fw-medium">@e.Salary.ToString("C0")</td>
+                            <td class="text-nowrap">@e.HireDate.ToString("d MMM yyyy")</td>
+                            <td>
+                                <span class="status-badge @(e.IsActive ? "status-active" : "status-inactive")">@(e.IsActive ? "Active" : "Inactive")</span>
+                            </td>
+                            <td class="text-end text-nowrap">
+                                <a class="btn btn-icon" asp-action="Details" asp-route-id="@e.EmployeeId" title="View" aria-label="View @e.FullName"><i class="bi bi-eye"></i></a>
+                                <a class="btn btn-icon" asp-action="Edit" asp-route-id="@e.EmployeeId" title="Edit" aria-label="Edit @e.FullName"><i class="bi bi-pencil"></i></a>
+                                <a class="btn btn-icon text-danger" asp-action="Delete" asp-route-id="@e.EmployeeId" title="Delete" aria-label="Delete @e.FullName"><i class="bi bi-trash"></i></a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
 
-    <div class="d-flex justify-content-between align-items-center">
-        <span class="text-muted small">
-            Page @result.Page of @result.TotalPages &middot; @result.TotalCount employee(s)
-        </span>
-        <nav aria-label="Employee pages">
-            <ul class="pagination pagination-sm mb-0">
-                <li class="page-item @(result.HasPrevious ? "" : "disabled")">
-                    <a class="page-link" asp-action="Index" asp-route-search="@Model.Search"
-                       asp-route-departmentId="@Model.DepartmentId" asp-route-page="@(result.Page - 1)">Previous</a>
-                </li>
-                <li class="page-item @(result.HasNext ? "" : "disabled")">
-                    <a class="page-link" asp-action="Index" asp-route-search="@Model.Search"
-                       asp-route-departmentId="@Model.DepartmentId" asp-route-page="@(result.Page + 1)">Next</a>
-                </li>
-            </ul>
-        </nav>
-    </div>
-}
+        <div class="table-footer">
+            <span>Showing <strong>@first–@last</strong> of <strong>@result.TotalCount</strong> employee(s)</span>
+            @if (result.TotalPages > 1)
+            {
+                <nav aria-label="Employee pages">
+                    <ul class="pagination pagination-sm mb-0">
+                        <li class="page-item @(result.HasPrevious ? "" : "disabled")">
+                            <a class="page-link" asp-action="Index" asp-all-route-data="Route(page: result.Page - 1)" aria-label="Previous page"><i class="bi bi-chevron-left"></i></a>
+                        </li>
+                        @for (var p = startPage; p <= endPage; p++)
+                        {
+                            <li class="page-item @(p == result.Page ? "active" : "")">
+                                <a class="page-link" asp-action="Index" asp-all-route-data="Route(page: p)">@p</a>
+                            </li>
+                        }
+                        <li class="page-item @(result.HasNext ? "" : "disabled")">
+                            <a class="page-link" asp-action="Index" asp-all-route-data="Route(page: result.Page + 1)" aria-label="Next page"><i class="bi bi-chevron-right"></i></a>
+                        </li>
+                    </ul>
+                </nav>
+            }
+        </div>
+    }
+</div>

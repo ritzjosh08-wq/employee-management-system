@@ -1,14 +1,27 @@
 @model Department
 @{
-    ViewData["Title"] = "New department";
+    ViewData["Title"] = "Add department";
 }
 
-<h1 class="h3 mb-4">New department</h1>
+<div class="page-header">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a asp-action="Index">Departments</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Add department</li>
+            </ol>
+        </nav>
+        <h1 class="page-title">Add department</h1>
+        <p class="page-subtitle">Create a new team or business unit.</p>
+    </div>
+</div>
 
-<form asp-action="Create" method="post" class="form-narrow">
+<form asp-action="Create" method="post" class="card form-card-narrow" novalidate>
     <partial name="_Form" model="Model" />
-    <button type="submit" class="btn btn-primary">Create</button>
-    <a asp-action="Index" class="btn btn-link">Cancel</a>
+    <div class="form-footer">
+        <a asp-action="Index" class="btn btn-light">Cancel</a>
+        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Create department</button>
+    </div>
 </form>
 
 @section Scripts {

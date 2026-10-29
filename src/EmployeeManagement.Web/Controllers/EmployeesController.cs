@@ -21,18 +21,17 @@ public class EmployeesController : Controller
         _departments = departments;
     }
 
-    // GET: /Employees?search=ana&departmentId=2&page=1
-    public async Task<IActionResult> Index(string? search, int? departmentId, int page = 1,
-        CancellationToken cancellationToken = default)
+    // GET: /Employees?search=ana&departmentId=2&isActive=true&sort=salary_desc&page=1
+    public async Task<IActionResult> Index([FromQuery] EmployeeQuery query, CancellationToken cancellationToken)
     {
-        page = Math.Max(page, 1);
+        // The page size is fixed by the server, not taken from the query string.
+        query = query with { Page = Math.Max(query.Page, 1), PageSize = PageSize };
 
         var model = new EmployeeListViewModel
         {
-            Result = await _employees.SearchAsync(search, departmentId, page, PageSize, cancellationToken),
-            Departments = await GetDepartmentOptionsAsync(departmentId, cancellationToken),
-            Search = search,
-            DepartmentId = departmentId
+            Result = await _employees.SearchAsync(query, cancellationToken),
+            Query = query,
+            Departments = await GetDepartmentOptionsAsync(query.DepartmentId, cancellationToken)
         };
 
         return View(model);

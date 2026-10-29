@@ -30,6 +30,8 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+app.UseStatusCodePagesWithReExecute("/Home/Status/{0}");
+
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 

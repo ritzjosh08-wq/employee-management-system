@@ -47,4 +47,7 @@ public class Employee
 
     [Display(Name = "Name")]
     public string FullName => $"{FirstName} {LastName}";
+
+    // Shown in the avatar circle, e.g. "AT" for Ava Thompson.
+    public string Initials => $"{FirstName.FirstOrDefault()}{LastName.FirstOrDefault()}".ToUpperInvariant();
 }

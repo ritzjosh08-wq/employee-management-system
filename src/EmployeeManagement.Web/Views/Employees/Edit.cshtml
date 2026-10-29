@@ -3,14 +3,26 @@
     ViewData["Title"] = "Edit employee";
 }
 
-<h1 class="h3 mb-4">Edit @Model.Employee.FullName</h1>
+<div class="page-header">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a asp-action="Index">Employees</a></li>
+                <li class="breadcrumb-item"><a asp-action="Details" asp-route-id="@Model.Employee.EmployeeId">@Model.Employee.FullName</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Edit</li>
+            </ol>
+        </nav>
+        <h1 class="page-title">Edit employee</h1>
+        <p class="page-subtitle">Update @Model.Employee.FullName's details.</p>
+    </div>
+</div>
 
-<form asp-action="Edit" asp-route-id="@Model.Employee.EmployeeId" method="post" class="form-wide">
+<form asp-action="Edit" asp-route-id="@Model.Employee.EmployeeId" method="post" class="card form-card" novalidate>
     <input type="hidden" asp-for="Employee.EmployeeId" />
     <partial name="_Form" model="Model" />
-    <div class="mt-4">
-        <button type="submit" class="btn btn-primary">Save</button>
-        <a asp-action="Details" asp-route-id="@Model.Employee.EmployeeId" class="btn btn-link">Cancel</a>
+    <div class="form-footer">
+        <a asp-action="Details" asp-route-id="@Model.Employee.EmployeeId" class="btn btn-light">Cancel</a>
+        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Save changes</button>
     </div>
 </form>
 

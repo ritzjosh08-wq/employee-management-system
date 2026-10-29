@@ -21,13 +21,23 @@ public class EmployeeRepository : IEmployeeRepository
         _connectionFactory = connectionFactory;
     }
 
-    public async Task<PagedResult<Employee>> SearchAsync(string? search, int? departmentId, int page, int pageSize,
-        CancellationToken cancellationToken = default)
+    // Column names can't be SQL parameters, so the sort order comes from this fixed
+    // allow-list. Anything not in it falls back to sorting by name.
+    private static readonly Dictionary<string, string> SortColumns = new(StringComparer.OrdinalIgnoreCase)
+    {
+        [EmployeeSort.Name] = "e.LastName {0}, e.FirstName {0}",
+        [EmployeeSort.Department] = "d.Name {0}, e.LastName, e.FirstName",
+        [EmployeeSort.JobTitle] = "e.JobTitle {0}, e.LastName, e.FirstName",
+        [EmployeeSort.Salary] = "e.Salary {0}, e.LastName, e.FirstName",
+        [EmployeeSort.HireDate] = "e.HireDate {0}, e.LastName, e.FirstName"
+    };
+
+    public async Task<PagedResult<Employee>> SearchAsync(EmployeeQuery query, CancellationToken cancellationToken = default)
     {
         // COUNT(*) OVER() returns the total number of matching rows on every row,
         // so one round trip gives us both the page and the total for the pager.
         // OFFSET/FETCH does the paging inside SQL Server.
-        const string sql = """
+        var sql = $"""
             SELECT e.EmployeeId, e.FirstName, e.LastName, e.Email, e.JobTitle, e.Salary,
                    e.HireDate, e.IsActive, e.DepartmentId, d.Name AS DepartmentName,
                    COUNT(*) OVER() AS TotalCount
@@ -37,17 +47,19 @@ public class EmployeeRepository : IEmployeeRepository
                    OR e.FirstName LIKE @Search OR e.LastName LIKE @Search
                    OR e.Email LIKE @Search OR e.JobTitle LIKE @Search)
               AND (@DepartmentId IS NULL OR e.DepartmentId = @DepartmentId)
-            ORDER BY e.LastName, e.FirstName
+              AND (@IsActive IS NULL OR e.IsActive = @IsActive)
+            ORDER BY {BuildOrderBy(query.Sort)}
             OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
             """;
 
         await using var connection = await _connectionFactory.CreateOpenConnectionAsync(cancellationToken);
         await using var command = new SqlCommand(sql, connection);
         command.Parameters.Add("@Search", SqlDbType.NVarChar, 260).Value =
-            string.IsNullOrWhiteSpace(search) ? DBNull.Value : $"%{EscapeLike(search.Trim())}%";
-        command.Parameters.Add("@DepartmentId", SqlDbType.Int).Value = (object?)departmentId ?? DBNull.Value;
-        command.Parameters.Add("@Offset", SqlDbType.Int).Value = (page - 1) * pageSize;
-        command.Parameters.Add("@PageSize", SqlDbType.Int).Value = pageSize;
+            string.IsNullOrWhiteSpace(query.Search) ? DBNull.Value : $"%{EscapeLike(query.Search.Trim())}%";
+        command.Parameters.Add("@DepartmentId", SqlDbType.Int).Value = (object?)query.DepartmentId ?? DBNull.Value;
+        command.Parameters.Add("@IsActive", SqlDbType.Bit).Value = (object?)query.IsActive ?? DBNull.Value;
+        command.Parameters.Add("@Offset", SqlDbType.Int).Value = (query.Page - 1) * query.PageSize;
+        command.Parameters.Add("@PageSize", SqlDbType.Int).Value = query.PageSize;
 
         await using var reader = await command.ExecuteReaderAsync(cancellationToken);
 
@@ -63,9 +75,18 @@ public class EmployeeRepository : IEmployeeRepository
         {
             Items = employees,
             TotalCount = totalCount,
-            Page = page,
-            PageSize = pageSize
+            Page = query.Page,
+            PageSize = query.PageSize
         };
+    }
+
+    private static string BuildOrderBy(string? sort)
+    {
+        var descending = sort?.EndsWith(EmployeeSort.DescendingSuffix, StringComparison.OrdinalIgnoreCase) == true;
+        var key = descending ? sort![..^EmployeeSort.DescendingSuffix.Length] : sort ?? EmployeeSort.Name;
+
+        var template = SortColumns.GetValueOrDefault(key, SortColumns[EmployeeSort.Name]);
+        return string.Format(template, descending ? "DESC" : "ASC");
     }
 
     public async Task<Employee?> GetByIdAsync(int id, CancellationToken cancellationToken = default)

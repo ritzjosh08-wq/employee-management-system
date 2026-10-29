@@ -1,22 +1,43 @@
 @model Department
 @{
     ViewData["Title"] = "Delete department";
+    var blocked = Model.EmployeeCount > 0;
 }
 
-<h1 class="h3 mb-4">Delete department</h1>
-
-<div class="card form-narrow">
-    <div class="card-body">
-        <p>Are you sure you want to delete <strong>@Model.Name</strong>?</p>
-        @if (Model.EmployeeCount > 0)
-        {
-            <div class="alert alert-warning">
-                This department has @Model.EmployeeCount employee(s). It can't be deleted until they are moved to another department.
-            </div>
-        }
-        <form asp-action="Delete" asp-route-id="@Model.DepartmentId" method="post">
-            <button type="submit" class="btn btn-danger" disabled="@(Model.EmployeeCount > 0)">Delete</button>
-            <a asp-action="Index" class="btn btn-link">Cancel</a>
-        </form>
+<div class="page-header">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a asp-action="Index">Departments</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Delete @Model.Name</li>
+            </ol>
+        </nav>
+        <h1 class="page-title">Delete department</h1>
     </div>
+</div>
+
+<div class="card confirm-card">
+    <div class="card-body">
+        <span class="stat-icon @(blocked ? "tone-warning" : "tone-danger")"><i class="bi @(blocked ? "bi-shield-exclamation" : "bi-exclamation-triangle")"></i></span>
+        @if (blocked)
+        {
+            <h2 class="h5 fw-semibold">@Model.Name can't be deleted yet</h2>
+            <p class="text-muted mb-3">
+                It still has <strong>@Model.EmployeeCount employee(s)</strong>. Move them to another department,
+                or delete them, before removing this department.
+            </p>
+            <a class="btn btn-light btn-sm" asp-controller="Employees" asp-action="Index" asp-route-departmentId="@Model.DepartmentId">
+                <i class="bi bi-people"></i> View its employees
+            </a>
+        }
+        else
+        {
+            <h2 class="h5 fw-semibold">Delete @Model.Name?</h2>
+            <p class="text-muted mb-0">This department has no employees. Deleting it can't be undone.</p>
+        }
+    </div>
+    <form asp-action="Delete" asp-route-id="@Model.DepartmentId" method="post" class="form-footer">
+        <a asp-action="Index" class="btn btn-light">Cancel</a>
+        <button type="submit" class="btn btn-danger" disabled="@blocked"><i class="bi bi-trash"></i> Delete department</button>
+    </form>
 </div>

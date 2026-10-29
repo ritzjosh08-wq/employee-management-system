@@ -1,15 +1,26 @@
 @model EmployeeFormViewModel
 @{
-    ViewData["Title"] = "New employee";
+    ViewData["Title"] = "Add employee";
 }
 
-<h1 class="h3 mb-4">New employee</h1>
+<div class="page-header">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a asp-action="Index">Employees</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Add employee</li>
+            </ol>
+        </nav>
+        <h1 class="page-title">Add employee</h1>
+        <p class="page-subtitle">Create a new employee record.</p>
+    </div>
+</div>
 
-<form asp-action="Create" method="post" class="form-wide">
+<form asp-action="Create" method="post" class="card form-card" novalidate>
     <partial name="_Form" model="Model" />
-    <div class="mt-4">
-        <button type="submit" class="btn btn-primary">Create</button>
-        <a asp-action="Index" class="btn btn-link">Cancel</a>
+    <div class="form-footer">
+        <a asp-action="Index" class="btn btn-light">Cancel</a>
+        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Create employee</button>
     </div>
 </form>
 

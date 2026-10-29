@@ -1,0 +1,22 @@
+@model int
+@{
+    var notFound = Model == 404;
+    ViewData["Title"] = notFound ? "Page not found" : "Something went wrong";
+}
+
+<div class="card">
+    <div class="empty-state">
+        <span class="stat-icon @(notFound ? "tone-primary" : "tone-danger")"><i class="bi @(notFound ? "bi-signpost-split" : "bi-exclamation-octagon")"></i></span>
+        <div class="text-muted small fw-semibold mb-1">Error @Model</div>
+        <h3>@ViewData["Title"]</h3>
+        <p>
+            @(notFound
+                ? "The page or record you're looking for doesn't exist. It may have been deleted."
+                : "The request couldn't be completed. Please go back and try again.")
+        </p>
+        <div class="d-flex gap-2 justify-content-center">
+            <a class="btn btn-light" asp-controller="Employees" asp-action="Index">Employees</a>
+            <a class="btn btn-primary" asp-controller="Home" asp-action="Index">Back to dashboard</a>
+        </div>
+    </div>
+</div>

@@ -1,36 +1,63 @@
 @model IReadOnlyList<Department>
 @{
     ViewData["Title"] = "Departments";
+    var totalEmployees = Model.Sum(d => d.EmployeeCount);
 }
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h1 class="h3 mb-0">Departments</h1>
-    <a class="btn btn-primary" asp-action="Create">New department</a>
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Departments</h1>
+        <p class="page-subtitle">@Model.Count department(s) · @totalEmployees employee(s) in total.</p>
+    </div>
+    <div class="page-actions">
+        <a class="btn btn-primary" asp-action="Create"><i class="bi bi-plus-lg"></i> Add department</a>
+    </div>
 </div>
 
-<div class="table-responsive">
-<table class="table table-hover align-middle">
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Location</th>
-            <th class="text-end">Employees</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
+@if (Model.Count == 0)
+{
+    <div class="card">
+        <div class="empty-state">
+            <span class="stat-icon tone-warning"><i class="bi bi-diagram-3"></i></span>
+            <h3>No departments yet</h3>
+            <p>Departments group your employees into teams. Create one to get started.</p>
+            <a asp-action="Create" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Add department</a>
+        </div>
+    </div>
+}
+else
+{
+    <div class="row g-3">
         @foreach (var d in Model)
         {
-            <tr>
-                <td><a asp-controller="Employees" asp-action="Index" asp-route-departmentId="@d.DepartmentId">@d.Name</a></td>
-                <td>@(d.Location ?? "—")</td>
-                <td class="text-end">@d.EmployeeCount</td>
-                <td class="text-end text-nowrap">
-                    <a class="btn btn-sm btn-outline-secondary" asp-action="Edit" asp-route-id="@d.DepartmentId">Edit</a>
-                    <a class="btn btn-sm btn-outline-danger" asp-action="Delete" asp-route-id="@d.DepartmentId">Delete</a>
-                </td>
-            </tr>
+            var share = totalEmployees == 0 ? 0 : d.EmployeeCount * 100 / totalEmployees;
+            <div class="col-sm-6 col-xl-4">
+                <div class="card dept-card">
+                    <div class="card-body">
+                        <div class="d-flex align-items-start justify-content-between gap-2">
+                            <div class="d-flex align-items-center gap-3 min-w-0">
+                                <span class="stat-icon tone-primary"><i class="bi bi-building"></i></span>
+                                <div class="min-w-0">
+                                    <a class="dept-name d-block text-truncate" asp-controller="Employees" asp-action="Index" asp-route-departmentId="@d.DepartmentId">@d.Name</a>
+                                    <span class="person-meta"><i class="bi bi-geo-alt"></i> @(d.Location ?? "No location set")</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="dept-stats">
+                            <div><strong>@d.EmployeeCount</strong> employee(s)</div>
+                            <div><strong>@share%</strong> of workforce</div>
+                        </div>
+                        <div class="bar-track" role="img" aria-label="@share% of workforce"><div class="bar-fill" style="width: @share%"></div></div>
+                    </div>
+                    <div class="card-footer">
+                        <a class="small fw-medium" asp-controller="Employees" asp-action="Index" asp-route-departmentId="@d.DepartmentId">View employees <i class="bi bi-arrow-right"></i></a>
+                        <div>
+                            <a class="btn btn-icon" asp-action="Edit" asp-route-id="@d.DepartmentId" title="Edit" aria-label="Edit @d.Name"><i class="bi bi-pencil"></i></a>
+                            <a class="btn btn-icon text-danger" asp-action="Delete" asp-route-id="@d.DepartmentId" title="Delete" aria-label="Delete @d.Name"><i class="bi bi-trash"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
         }
-    </tbody>
-</table>
-</div>
+    </div>
+}

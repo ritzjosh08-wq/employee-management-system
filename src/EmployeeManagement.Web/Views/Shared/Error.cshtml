@@ -3,10 +3,15 @@
     ViewData["Title"] = "Error";
 }
 
-<h1 class="text-danger">Something went wrong.</h1>
-<p>An error occurred while processing your request.</p>
-
-@if (Model.ShowRequestId)
-{
-    <p><strong>Request ID:</strong> <code>@Model.RequestId</code></p>
-}
+<div class="card">
+    <div class="empty-state">
+        <span class="stat-icon tone-danger"><i class="bi bi-exclamation-octagon"></i></span>
+        <h3>Something went wrong</h3>
+        <p>An unexpected error occurred while processing your request.</p>
+        @if (Model.ShowRequestId)
+        {
+            <p class="small">Reference: <code>@Model.RequestId</code></p>
+        }
+        <a class="btn btn-primary" asp-controller="Home" asp-action="Index">Back to dashboard</a>
+    </div>
+</div>

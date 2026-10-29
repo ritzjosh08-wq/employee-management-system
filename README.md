@@ -11,9 +11,13 @@ It manages employees and departments: CRUD screens, search, filtering, paging an
 
 ## Features
 
-- **Dashboard**: total and active headcount, average salary, per-department summary (from a stored procedure), recent hires
-- **Employees**: list with search (name, email, job title), filter by department and server-side paging; create, view, edit and delete
-- **Departments**: CRUD, with employee counts; a department that still has employees can't be deleted
+- **Dashboard**: KPI cards (headcount, active rate, departments, average salary), headcount-by-department chart
+  (from a stored procedure), recent hires and quick actions
+- **Employees**: search (name, email, job title), filter by department and status, sortable columns,
+  numbered server-side paging; employee profile with tenure; create, edit and delete
+- **Departments**: card view with headcount and share of workforce; a department that still has employees can't be deleted
+- **Professional admin UI**: responsive sidebar layout (collapses to a menu on phones), toast notifications,
+  breadcrumbs, empty states and custom 404/error pages
 - **Validation** on both sides: data annotations + jQuery unobtrusive validation in the browser, and constraints in SQL Server
 - **Friendly errors** for duplicate emails and department names (unique constraints mapped to form errors)
 - **Database bootstrapping**: the app creates the database, tables, indexes, stored procedure and sample data on first run
@@ -26,7 +30,7 @@ It manages employees and departments: CRUD screens, search, filtering, paging an
 | Web | ASP.NET Core MVC, Razor views, tag helpers |
 | Data access | ADO.NET with `Microsoft.Data.SqlClient` (parameterized SQL + stored procedure) |
 | Database | SQL Server (LocalDB, SQL Server Express/Developer, or Docker) |
-| UI | Bootstrap 5, jQuery Validation |
+| UI | Bootstrap 5 with a custom design system, Bootstrap Icons, Inter font, jQuery Validation |
 | CI | GitHub Actions (`dotnet build`) |
 
 ## Architecture
@@ -125,6 +129,8 @@ To manage the schema yourself instead, set `"Database": { "InitializeOnStartup":
 
 - Every query uses `SqlParameter`s with explicit types, so user input is never concatenated into SQL.
   User-entered `%`, `_` and `[` are escaped before `LIKE` searches.
+- Column sorting can't use parameters (SQL doesn't allow column names as parameters), so `ORDER BY` is chosen
+  from a fixed allow-list in `EmployeeRepository`; any other value falls back to the default order.
 - All POST actions use `[ValidateAntiForgeryToken]`; model binding uses `[Bind]` to prevent over-posting.
 - No credentials are committed. Use user secrets or environment variables (`ConnectionStrings__DefaultConnection`).
 
